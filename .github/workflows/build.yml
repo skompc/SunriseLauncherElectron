@@ -1,9 +1,6 @@
 name: Build
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -14,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Build
+          - name: All
             os: macos-26
             script: ./scripts/setup-build-env-macos.sh
 

@@ -75,6 +75,8 @@ const LANGUAGE_LABELS: Record<string, string> = {
 };
 
 const languageLabel = (steamLanguage: string) => LANGUAGE_LABELS[steamLanguage] ?? "English";
+const DEFAULT_LAUNCH_COMMAND = "destiny2.exe";
+const launchCommandValue = (value: string) => value.trim() || DEFAULT_LAUNCH_COMMAND;
 
 const element = <T extends HTMLElement>(selector: string): T => {
   const found = document.querySelector<T>(selector);
@@ -411,7 +413,7 @@ async function saveAndInspect() {
   const preferences: Preferences = {
     installDirectory: installDirectory.value.trim(),
     steamUsername: steamUsername.value.trim(),
-    launchCommand: launchCommand.value.trim(),
+    launchCommand: launchCommandValue(launchCommand.value),
     steamLanguage: gameLanguage.value,
     authMethod: snapshot?.preferences.authMethod ?? "qr",
   };
@@ -889,13 +891,15 @@ function handleOperationEvent(message: OperationEvent) {
 async function runOperation(kind: OperationKind, requestedPreferences?: Preferences) {
   if (operationRunning) return;
   let operationCompleted = false;
-  const operationPreferences: Preferences = requestedPreferences ?? {
-    installDirectory: installDirectory.value.trim(),
-    steamUsername: steamUsername.value.trim(),
-    launchCommand: launchCommand.value.trim(),
-    steamLanguage: gameLanguage.value,
-    authMethod: snapshot?.preferences.authMethod ?? "qr",
-  };
+  const operationPreferences: Preferences = requestedPreferences
+    ? { ...requestedPreferences, launchCommand: launchCommandValue(requestedPreferences.launchCommand) }
+    : {
+        installDirectory: installDirectory.value.trim(),
+        steamUsername: steamUsername.value.trim(),
+        launchCommand: launchCommandValue(launchCommand.value),
+        steamLanguage: gameLanguage.value,
+        authMethod: snapshot?.preferences.authMethod ?? "qr",
+      };
   activeAuthMethod = operationPreferences.authMethod;
   operationRunning = true;
   operationCancellationRequested = false;
@@ -999,7 +1003,7 @@ async function launch() {
   try {
     await invokeCommand("launch_game", {
       installDirectory: installDirectory.value.trim(),
-      launchCommand: snapshot?.preferences.launchCommand ?? launchCommand.value.trim(),
+      launchCommand: launchCommandValue(snapshot?.preferences.launchCommand ?? launchCommand.value),
     });
     launchGuardTimer = window.setTimeout(finishLaunching, LAUNCH_GUARD_MS);
   } catch (error) {

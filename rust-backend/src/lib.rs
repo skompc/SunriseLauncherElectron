@@ -1,3 +1,4 @@
+pub mod bootstrap;
 pub mod depot_errors;
 pub mod error;
 pub mod github;

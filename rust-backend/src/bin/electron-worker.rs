@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
+use project_sunrise_launcher_lib::bootstrap;
+
 use project_sunrise_launcher_lib::error::AppError;
 use project_sunrise_launcher_lib::github::GitHubClient;
 use project_sunrise_launcher_lib::installer;
 use project_sunrise_launcher_lib::models::{
-    AppSnapshot, OperationEvent, OperationRequest, Preferences, current_platform, resolve_language,
+    AppSnapshot, GAME_EXECUTABLE, OperationEvent, OperationRequest, Preferences, current_platform,
+    resolve_language,
 };
 use project_sunrise_launcher_lib::runtime::{EventSink, RuntimeContext};
 use project_sunrise_launcher_lib::storage;
@@ -55,7 +58,14 @@ struct OperationState {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), AppError> {
+async fn main() -> Result<(), AppError>
+{
+    if let Err(error) = bootstrap::initialize()
+    {
+        eprintln!("Bootstrap initialization failed: {}", error);
+        std::process::exit(1);
+    }
+
     let context = RuntimeContext::from_environment()?;
     let output = Arc::new(Mutex::new(tokio::io::stdout()));
     let state = Arc::new(OperationState::default());
@@ -178,7 +188,10 @@ async fn main() -> Result<(), AppError> {
                     .unwrap_or_default();
                 let result = launch_game(
                     install_directory,
-                    request.params["launchCommand"].as_str().unwrap_or_default(),
+                    request.params["launchCommand"]
+                        .as_str()
+                        .filter(|command| !command.trim().is_empty())
+                        .unwrap_or(GAME_EXECUTABLE),
                 )
                 .await;
                 write_result(&output, request.id, result).await;
@@ -191,6 +204,10 @@ async fn main() -> Result<(), AppError> {
 
 async fn get_app_snapshot(context: &RuntimeContext) -> Result<AppSnapshot, AppError> {
     let mut preferences = storage::load_preferences(context).await?;
+    let platform = current_platform();
+    if platform.os == "windows" && preferences.launch_command.trim().is_empty() {
+        preferences.launch_command = GAME_EXECUTABLE.into();
+    }
     preferences.steam_language = resolve_language(&preferences.steam_language)
         .steam_language
         .into();
@@ -206,7 +223,7 @@ async fn get_app_snapshot(context: &RuntimeContext) -> Result<AppSnapshot, AppEr
         .as_ref()
         .is_some_and(|release| installation.update_available(release));
     Ok(AppSnapshot {
-        platform: current_platform(),
+        platform,
         preferences,
         installation,
         latest_release,
@@ -247,7 +264,13 @@ async fn launch_game(install_directory: &str, launch_command: &str) -> Result<bo
     if !directory.is_dir() {
         return Err(AppError::message("The installation folder does not exist."));
     }
-    let mut command = std::process::Command::new(program);
+    let program_path = std::path::Path::new(program);
+    let program_path = if cfg!(target_os = "windows") && !program_path.is_absolute() {
+        directory.join(program_path)
+    } else {
+        program_path.to_path_buf()
+    };
+    let mut command = std::process::Command::new(program_path);
     command.args(arguments).current_dir(directory);
     command
         .spawn()

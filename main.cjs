@@ -13,7 +13,10 @@ function startWorker() {
   const packagedWorker = path.join(process.resourcesPath, "backend", workerName);
   const developmentWorker = path.join(__dirname, "rust-backend", "target", "debug", workerName);
   const workerPath = process.env.SUNRISE_WORKER_PATH ?? (app.isPackaged ? packagedWorker : developmentWorker);
-  worker = spawn(workerPath, [], { stdio: ["pipe", "pipe", "inherit"] });
+  worker = spawn(workerPath, [], {
+    stdio: ["pipe", "pipe", "inherit"],
+    windowsHide: true,
+  });
   const lines = readline.createInterface({ input: worker.stdout });
   lines.on("line", (line) => {
     let message;

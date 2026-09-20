@@ -825,11 +825,34 @@ h1 {
 }
 
 .close-button {
-  width: 30px;
-  height: 30px;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  flex: none;
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 1px;
+  box-sizing: border-box;
   color: var(--muted);
+  background: rgba(255, 255, 255, 0.055);
   font-size: 24px;
   font-weight: 200;
+  line-height: 1;
+  -webkit-app-region: no-drag;
+  transition: color 130ms ease, background 130ms ease, border-color 130ms ease;
+}
+
+.close-button:hover,
+.close-button:focus-visible {
+  color: var(--gold-bright);
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.12);
+  outline: 0;
 }
 
 .settings-dialog {

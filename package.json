@@ -1,7 +1,7 @@
 {
   "name": "project-sunrise-launcher-electron",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cross-platform installer and launcher for Project Sunrise",
   "author": "Project Sunrise contributors",
   "type": "commonjs",
@@ -20,9 +20,8 @@
     "package:all": "npm run build:renderer && npm run build:backend:all && electron-builder --publish never --mac --x64 --arm64 --win --x64 --arm64 --linux --x64 --arm64",
     "start": "electron ."
   },
-  "dependencies": {},
   "devDependencies": {
-    "electron": "^36.0.0",
+    "electron": "^36.9.5",
     "electron-builder": "^26.0.12",
     "typescript": "~5.6.2",
     "vite": "^6.0.3"
@@ -65,5 +64,11 @@
       ],
       "category": "Game"
     }
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.25.12": true,
+    "fsevents@2.3.3": true,
+    "electron@36.9.5": true
   }
 }

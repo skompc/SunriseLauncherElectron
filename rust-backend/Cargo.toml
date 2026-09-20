@@ -1,6 +1,6 @@
 [package]
 name = "project-sunrise-launcher"
-version = "0.1.0"
+version = "0.2.0"
 description = "Cross-platform installer and launcher for Project Sunrise"
 authors = ["Project Sunrise contributors"]
 license = "GPL-2.0-only"
